@@ -10,6 +10,7 @@ import uvicorn, logging, uuid
 from pathlib import Path
 
 from services.pdf_compare import PDFComparer
+from flask import Flask, send_from_directory
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(message)s")
@@ -24,8 +25,17 @@ UPLOAD_DIR = Path(_dir) / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 MAX_MB = 50
 
+app = Flask(
+    __name__,
+    static_folder="../frontend",
+    static_url_path=""
+)
 
-@app.get("/")
+@app.route("/")
+def serve_frontend():
+    return send_from_directory(app.static_folder, "index.html")
+
+# @app.get("/")
 def root():
     return {"status": "ok", "version": "2.0.0"}
 

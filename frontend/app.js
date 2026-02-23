@@ -19,7 +19,7 @@ let searchResults = [];
 let currentSearchIndex = -1;
 
 // UI state
-//let highlightsVisible = true;
+// let highlightsVisible = true;
 let keyboardShortcutsEnabled = true;
 
 // ── Boot ─────────────────────────────────────────────────
@@ -40,8 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Screen nav ───────────────────────────────────────────
 // Manages screen transitions: upload → loading → results
 // CRITICAL: Only ONE screen visible at any time
-function showScreen(id) {
-    // STEP 1: Force hide ALL screens (no exceptions)
+function showScreen(id) { // STEP 1: Force hide ALL screens (no exceptions)
     const allScreens = ['screen-upload', 'screen-loading', 'screen-results'];
     allScreens.forEach(screenId => {
         const screen = document.getElementById(screenId);
@@ -53,14 +52,12 @@ function showScreen(id) {
 
     // STEP 2: Show ONLY the requested screen
     const targetScreen = document.getElementById(id);
-    if (!targetScreen) {
+    if (! targetScreen) {
         console.error(`Screen not found: ${id}`);
         return;
     }
 
-    targetScreen.style.display = id === 'screen-results' ? 'flex' :
-        id === 'screen-loading' ? 'flex' :
-            'block';
+    targetScreen.style.display = id === 'screen-results' ? 'flex' : id === 'screen-loading' ? 'flex' : 'block';
     targetScreen.classList.add('active');
 
     // STEP 3: Hide detail panel when not on results screen
@@ -70,7 +67,9 @@ function showScreen(id) {
     }
 
     // Debug log (can be removed in production)
-    console.log(`[Screen] Showing: ${id}, Hidden: ${allScreens.filter(s => s !== id).join(', ')}`);
+    console.log(`[Screen] Showing: ${id}, Hidden: ${
+        allScreens.filter(s => s !== id).join(', ')
+    }`);
 
     // Verify only one screen is visible
     verifyScreenState();
@@ -91,12 +90,15 @@ function verifyScreenState() {
     });
 
     if (visibleScreens.length !== 1) {
-        console.error(`[Screen] ERROR: ${visibleScreens.length} screens visible (should be 1):`, visibleScreens);
+        console.error(`[Screen] ERROR: ${
+            visibleScreens.length
+        } screens visible (should be 1):`, visibleScreens);
     } else {
-        console.log(`[Screen] ✓ Verified: Only ${visibleScreens[0]} is visible`);
+        console.log(`[Screen] ✓ Verified: Only ${
+            visibleScreens[0]
+        } is visible`);
     }
 }
-
 
 
 // ── Drop zones ───────────────────────────────────────────
@@ -114,16 +116,19 @@ function initDrop(dzId, inputId, num) {
         e.preventDefault();
         dz.classList.remove('over');
         const f = e.dataTransfer.files[0];
-        if (f) pickFile(f, num);
+        if (f) 
+            pickFile(f, num);
+        
     });
 }
 
 function pickFile(file, num) {
-    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+    if (! file || ! file.name.toLowerCase().endsWith('.pdf')) {
         return showToast('Please select a PDF file');
     }
-    if (file.size > 50 * 1024 * 1024)
+    if (file.size > 50 * 1024 * 1024) 
         return showToast('File exceeds 50 MB limit');
+    
 
     if (num === 1) {
         file1 = file;
@@ -159,14 +164,15 @@ function removeFile(num, e) {
 }
 
 function fmtBytes(b) {
-    const u = ['B', 'KB', 'MB'],
+    const u = [
+            'B', 'KB', 'MB'
+        ],
         i = Math.min(Math.floor(Math.log(b) / Math.log(1024)), 2);
-    return (b / Math.pow(1024, i)).toFixed(1) + ' ' + u[i];
+    return(b / Math.pow(1024, i)).toFixed(1) + ' ' + u[i];
 }
 
 // ── Compare ──────────────────────────────────────────────
-async function startCompare() {
-    // STEP 1: Show loading screen (hide upload screen)
+async function startCompare() { // STEP 1: Show loading screen (hide upload screen)
     showScreen('screen-loading');
     animateLoading();
 
@@ -183,16 +189,20 @@ async function startCompare() {
 
         // Guard: check content-type before attempting JSON parse
         const contentType = resp.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
+        if (! contentType.includes('application/json')) {
             const text = await resp.text();
             console.error('Non-JSON response from server:', text);
-            throw new Error(`Server returned unexpected content (${resp.status}). Check console for details.`);
+            throw new Error(`Server returned unexpected content (${
+                resp.status
+            }). Check console for details.`);
         }
 
         const data = await resp.json();
 
-        if (!resp.ok) {
-            throw new Error(data.detail || `Server error ${resp.status}`);
+        if (! resp.ok) {
+            throw new Error(data.detail || `Server error ${
+                resp.status
+            }`);
         }
 
         setLoadStep(5);
@@ -200,20 +210,28 @@ async function startCompare() {
 
         console.log('API response:', data);
 
-        if (!data || !data.pages) {
-            throw new Error(data?.detail || data?.message || 'Unexpected response from server. Check console for details.');
+        if (! data || ! data.pages) {
+            throw new Error(data ?. detail || data ?. message || 'Unexpected response from server. Check console for details.');
         }
 
         // Build summary from response if server doesn't provide one
-        if (!data.summary) {
-            let text_changes = 0, table_changes = 0, image_changes = 0;
+        if (! data.summary) {
+            let text_changes = 0,
+                table_changes = 0,
+                image_changes = 0;
             const changedPages = new Set();
             data.pages.forEach(pg => {
                 pg.changes.forEach(ch => {
-                    if (ch.type === 'text') text_changes++;
-                    else if (ch.type === 'table') table_changes++;
-                    else if (ch.type === 'image') image_changes++;
-                    if (ch.change !== 'same') changedPages.add(pg.page_num);
+                    if (ch.type === 'text') 
+                        text_changes++;
+                     else if (ch.type === 'table') 
+                        table_changes++;
+                     else if (ch.type === 'image') 
+                        image_changes++;
+                    
+                    if (ch.change !== 'same') 
+                        changedPages.add(pg.page_num);
+                    
                 });
             });
             data.summary = {
@@ -279,10 +297,15 @@ function animateLoading() {
 function setLoadStep(n) {
     for (let i = 1; i <= 5; i++) {
         const el = document.getElementById(`ls${i}`);
-        if (!el) continue;
+        if (! el) 
+            continue;
+        
         el.classList.remove('active', 'done');
-        if (i < n) el.classList.add('done');
-        else if (i === n) el.classList.add('active');
+        if (i < n) 
+            el.classList.add('done');
+         else if (i === n) 
+            el.classList.add('active');
+        
     }
 }
 
@@ -290,7 +313,7 @@ function setLoadStep(n) {
 // Populates the results screen UI with comparison data
 // NOTE: Does NOT manage screen visibility - caller must call showScreen('screen-results')
 function buildResults(data) {
-    if (!data?.pages) {
+    if (! data ?. pages) {
         console.error('Invalid response structure:', data);
         showToast('Server returned an unexpected response.');
         showScreen('screen-upload');
@@ -304,12 +327,24 @@ function buildResults(data) {
 
     // Summary bar with legend
     document.getElementById('summaryBar').innerHTML = `
-    ${scard('📄', 'Total Pages', s.total_pages, 'white')}
-    ${scard('⚡', 'Pages Changed', s.pages_changed, 'yellow')}
-    ${scard('🔤', 'Text Changes', s.text_changes, 'blue')}
-    ${scard('📊', 'Table Changes', s.table_changes, 'blue')}
-    ${scard('🖼', 'Image Changes', s.image_changes, 'blue')}
-    ${scard('✅', 'Identical Pages', s.total_pages - s.pages_changed, 'green')}
+    ${
+        scard('📄', 'Total Pages', s.total_pages, 'white')
+    }
+    ${
+        scard('⚡', 'Pages Changed', s.pages_changed, 'yellow')
+    }
+    ${
+        scard('🔤', 'Text Changes', s.text_changes, 'blue')
+    }
+    ${
+        scard('📊', 'Table Changes', s.table_changes, 'blue')
+    }
+    ${
+        scard('🖼', 'Image Changes', s.image_changes, 'blue')
+    }
+    ${
+        scard('✅', 'Identical Pages', s.total_pages - s.pages_changed, 'green')
+    }
     <div style="flex: 1;"></div>
     <div style="display: flex; gap: 12px; align-items: center; padding: 0 15px; font-size: 11px;">
         <span style="color: #999;">Legend:</span>
@@ -332,14 +367,18 @@ function buildResults(data) {
     allChanges = [];
     data.pages.forEach(pg => {
         pg.changes.forEach(ch => {
-            allChanges.push({ ...ch, _page: pg.page_num, _pgData: pg });
+            allChanges.push({
+                ...ch,
+                _page: pg.page_num,
+                _pgData: pg
+            });
         });
     });
 
     // Render pages
     renderPages(data.pages);
     applyFilters();
-    
+
     // Don't auto-show controls - user must click toggle buttons
     // This gives users a cleaner interface by default
 }
@@ -355,12 +394,15 @@ function scard(icon, label, val, color) {
 }
 
 // ── Add Search UI ─────────────────────────────────────────
-function addSearchUI() {
-    // Check if search UI already exists
-    if (document.getElementById('searchBar')) return;
+function addSearchUI() { // Check if search UI already exists
+    if (document.getElementById('searchBar')) 
+        return;
+    
 
     const changePanel = document.getElementById('changePanel');
-    if (!changePanel) return;
+    if (! changePanel) 
+        return;
+    
 
     // Create search bar
     const searchBar = document.createElement('div');
@@ -504,12 +546,11 @@ function renderPages(pages) {
     }
 }
 
-function renderPageSelector(pages) {
-    // Create page selector bar (find or create container)
+function renderPageSelector(pages) { // Create page selector bar (find or create container)
     let selector = document.getElementById('pageSelector');
     const showArrows = pages.length > 20; // Show scroll arrows for 20+ pages
-    
-    if (!selector) {
+
+    if (! selector) {
         selector = document.createElement('div');
         selector.id = 'pageSelector';
         selector.style.cssText = `
@@ -525,7 +566,7 @@ function renderPageSelector(pages) {
             align-items: center;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 90vw;
+            max-width: 55vw;
         `;
         document.body.appendChild(selector);
     }
@@ -555,8 +596,12 @@ function renderPageSelector(pages) {
             transition: all 0.2s;
             flex-shrink: 0;
         `;
-        leftArrow.onmouseover = () => { leftArrow.style.background = '#555'; };
-        leftArrow.onmouseout = () => { leftArrow.style.background = '#444'; };
+        leftArrow.onmouseover = () => {
+            leftArrow.style.background = '#555';
+        };
+        leftArrow.onmouseout = () => {
+            leftArrow.style.background = '#444';
+        };
         leftArrow.onclick = () => scrollPageSelector(-200);
         selector.appendChild(leftArrow);
     }
@@ -570,12 +615,14 @@ function renderPageSelector(pages) {
         align-items: center;
         overflow-x: auto;
         overflow-y: hidden;
-        max-width: ${showArrows ? 'calc(90vw - 200px)' : 'calc(90vw - 100px)'};
+        max-width: ${
+        showArrows ? 'calc(90vw - 200px)' : 'calc(90vw - 100px)'
+    };
         scroll-behavior: smooth;
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* IE/Edge */
     `;
-    
+
     // Hide scrollbar for Chrome/Safari
     const style = document.createElement('style');
     style.textContent = '#pageSelectorScroll::-webkit-scrollbar { display: none; }';
@@ -584,7 +631,8 @@ function renderPageSelector(pages) {
         document.head.appendChild(style);
     }
 
-    currentVisiblePage = 1; // Reset to page 1
+    currentVisiblePage = 1;
+    // Reset to page 1
 
     // Add page buttons to scroll container
     pages.forEach(pg => {
@@ -597,12 +645,16 @@ function renderPageSelector(pages) {
             padding: 6px 12px;
             border: none;
             border-radius: 15px;
-            background: ${isActive ? '#2ecc71' : (pg.has_changes ? '#4a90e2' : '#555')};
+            background: ${
+            isActive ? '#2ecc71' : (pg.has_changes ? '#4a90e2' : '#555')
+        };
             color: white;
             cursor: pointer;
             font-size: 13px;
             transition: all 0.2s;
-            transform: ${isActive ? 'scale(1.1)' : 'scale(1)'};
+            transform: ${
+            isActive ? 'scale(1.1)' : 'scale(1)'
+        };
             flex-shrink: 0;
             white-space: nowrap;
         `;
@@ -646,8 +698,12 @@ function renderPageSelector(pages) {
             transition: all 0.2s;
             flex-shrink: 0;
         `;
-        rightArrow.onmouseover = () => { rightArrow.style.background = '#555'; };
-        rightArrow.onmouseout = () => { rightArrow.style.background = '#444'; };
+        rightArrow.onmouseover = () => {
+            rightArrow.style.background = '#555';
+        };
+        rightArrow.onmouseout = () => {
+            rightArrow.style.background = '#444';
+        };
         rightArrow.onclick = () => scrollPageSelector(200);
         selector.appendChild(rightArrow);
     }
@@ -664,7 +720,9 @@ function scrollPageSelector(amount) {
 function makePageWrap(pg, b64, wPx, side) {
     const wrap = document.createElement('div');
     wrap.className = 'page-wrap';
-    wrap.id = `pw-${side}-${pg.page_num}`;
+    wrap.id = `pw-${side}-${
+        pg.page_num
+    }`;
     wrap.style.cssText = `
         width: ${wPx}px;
         position: relative;
@@ -684,10 +742,16 @@ function makePageWrap(pg, b64, wPx, side) {
 
     pg.changes.forEach(ch => {
         const bbox = side === 'left' ? ch.old_bbox : ch.new_bbox;
-        if (!bbox) return;
+        if (! bbox) 
+            return;
+        
 
         const hl = document.createElement('div');
-        hl.className = `hl ${ch.change} ${ch.type === 'image' ? 'image' : ''}`;
+        hl.className = `hl ${
+            ch.change
+        } ${
+            ch.type === 'image' ? 'image' : ''
+        }`;
 
         // Color based on change type
         let bgColor = 'rgba(255, 235, 59, 0.3)'; // yellow for modified
@@ -702,10 +766,18 @@ function makePageWrap(pg, b64, wPx, side) {
 
         hl.style.cssText = `
             position: absolute;
-            left: ${bbox.x * scaleX}px;
-            top: ${bbox.y * scaleY}px;
-            width: ${bbox.w * scaleX}px;
-            height: ${bbox.h * scaleY}px;
+            left: ${
+            bbox.x * scaleX
+        }px;
+            top: ${
+            bbox.y * scaleY
+        }px;
+            width: ${
+            bbox.w * scaleX
+        }px;
+            height: ${
+            bbox.h * scaleY
+        }px;
             background: ${bgColor};
             border: 2px solid ${borderColor};
             cursor: pointer;
@@ -737,7 +809,9 @@ function makePageWrap(pg, b64, wPx, side) {
                 flex-wrap: wrap;
                 padding: 2px 4px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
-                font-size: ${Math.max(9, Math.min(14, bbox.h * scaleY * 0.55))}px;
+                font-size: ${
+                Math.max(9, Math.min(14, bbox.h * scaleY * 0.55))
+            }px;
                 line-height: 1.3;
                 overflow: hidden;
                 pointer-events: none;
@@ -750,18 +824,22 @@ function makePageWrap(pg, b64, wPx, side) {
             // Build character-level highlighted text
             let htmlContent = '';
             ch.word_diff.forEach(word => {
-                if (word.status === 'same') {
-                    // Unchanged text - light gray
-                    htmlContent += `<span style="color: rgba(100,100,100,0.6); font-weight: 400; margin: 0 1px;">${esc(word.text)}</span> `;
-                } else if (word.status === 'added') {
-                    // Added text - bright green background, white text
-                    htmlContent += `<span style="background: #2E7D32; color: white; padding: 2px 4px; font-weight: 700; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${esc(word.text)}</span> `;
-                } else if (word.status === 'deleted') {
-                    // Deleted text - bright red background, white text, strikethrough
-                    htmlContent += `<span style="background: #C62828; color: white; padding: 2px 4px; font-weight: 700; text-decoration: line-through; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${esc(word.text)}</span> `;
-                } else if (word.status === 'modified') {
-                    // Modified text - bright orange/yellow background, dark text
-                    htmlContent += `<span style="background: #F57C00; color: white; padding: 2px 4px; font-weight: 700; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${esc(word.text)}</span> `;
+                if (word.status === 'same') { // Unchanged text - light gray
+                    htmlContent += `<span style="color: rgba(100,100,100,0.6); font-weight: 400; margin: 0 1px;">${
+                        esc(word.text)
+                    }</span> `;
+                } else if (word.status === 'added') { // Added text - bright green background, white text
+                    htmlContent += `<span style="background: #2E7D32; color: white; padding: 2px 4px; font-weight: 700; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${
+                        esc(word.text)
+                    }</span> `;
+                } else if (word.status === 'deleted') { // Deleted text - bright red background, white text, strikethrough
+                    htmlContent += `<span style="background: #C62828; color: white; padding: 2px 4px; font-weight: 700; text-decoration: line-through; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${
+                        esc(word.text)
+                    }</span> `;
+                } else if (word.status === 'modified') { // Modified text - bright orange/yellow background, dark text
+                    htmlContent += `<span style="background: #F57C00; color: white; padding: 2px 4px; font-weight: 700; border-radius: 2px; margin: 0 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); display: inline-block;">${
+                        esc(word.text)
+                    }</span> `;
                 }
             });
 
@@ -777,7 +855,7 @@ function makePageWrap(pg, b64, wPx, side) {
         });
 
         hl.addEventListener('mouseleave', () => {
-            if (!hl.classList.contains('active')) {
+            if (! hl.classList.contains('active')) {
                 hl.style.background = bgColor;
                 hl.style.transform = 'scale(1)';
                 hl.style.zIndex = '10';
@@ -797,12 +875,27 @@ function makePageWrap(pg, b64, wPx, side) {
 }
 
 function tooltipText(ch) {
-    const label = { added: 'Added', deleted: 'Deleted', modified: 'Modified' }[ch.change] || ch.change;
-    const type = { text: 'Text', table: 'Table', image: 'Image' }[ch.type] || ch.type;
+    const label = {
+        added: 'Added',
+        deleted: 'Deleted',
+        modified: 'Modified'
+    }[ch.change] || ch.change;
+    const type = {
+        text: 'Text',
+        table: 'Table',
+        image: 'Image'
+    }[ch.type] || ch.type;
     if (ch.type === 'text') {
-        if (ch.old_text && ch.new_text)
-            return `${label} ${type}: "${ch.old_text.slice(0, 40)}" → "${ch.new_text.slice(0, 40)}"`;
-        return `${label} ${type}: "${(ch.old_text || ch.new_text).slice(0, 60)}"`;
+        if (ch.old_text && ch.new_text) 
+            return `${label} ${type}: "${
+                ch.old_text.slice(0, 40)
+            }" → "${
+                ch.new_text.slice(0, 40)
+            }"`;
+        
+        return `${label} ${type}: "${
+            (ch.old_text || ch.new_text).slice(0, 60)
+        }"`;
     }
     return `${label} ${type}`;
 }
@@ -817,7 +910,7 @@ function toggleFilters() {
 function toggleChangesPanel() {
     const panel = document.getElementById('changePanel');
     const button = document.getElementById('changesPanelToggle');
-    
+
     if (panel.style.display === 'none') {
         panel.style.display = 'flex';
         button.style.background = 'rgba(96, 239, 188, 0.2)'; // Active state
@@ -833,13 +926,13 @@ function toggleChangesPanel() {
 function toggleFloatingControls() {
     const controls = document.getElementById('floatingControls');
     const button = document.getElementById('floatingToggle');
-    
-    if (!controls) {
+
+    if (! controls) {
         showToast('Controls not available yet. Complete a comparison first.');
         return;
     }
-    
-    if (controls.style.display === 'none' || !controls.style.display) {
+
+    if (controls.style.display === 'none' || ! controls.style.display) {
         controls.style.display = 'flex';
         button.style.background = 'rgba(96, 239, 188, 0.2)'; // Active state
         button.style.color = '#60efbc';
@@ -871,31 +964,29 @@ function applyFilters() {
     } else {
         document.querySelectorAll('.hl').forEach(el => {
             const ch = allChanges.find(c => c.id === el.dataset.id);
-            if (!ch) return;
+            if (! ch) 
+                return;
+            
             el.style.display = visibleChanges.includes(ch) ? '' : 'none';
         });
         buildChangePanel();
-    }
-
-    updateNav();
+    } updateNav();
 }
 
 // ── Search Functionality ──────────────────────────────────
 function performSearch(query, fromInput = true) {
     searchQuery = query.toLowerCase().trim();
 
-    if (!searchQuery) {
-        // Clear search
+    if (! searchQuery) { // Clear search
         searchResults = [];
         currentSearchIndex = -1;
-        visibleChanges = allChanges.filter(ch => {
-            // Re-apply filters
-            const showText = document.getElementById('fText')?.checked ?? true;
-            const showTable = document.getElementById('fTable')?.checked ?? true;
-            const showImage = document.getElementById('fImage')?.checked ?? true;
-            const showAdded = document.getElementById('fAdded')?.checked ?? true;
-            const showDel = document.getElementById('fDeleted')?.checked ?? true;
-            const showMod = document.getElementById('fModified')?.checked ?? true;
+        visibleChanges = allChanges.filter(ch => { // Re-apply filters
+            const showText = document.getElementById('fText') ?. checked ?? true;
+            const showTable = document.getElementById('fTable') ?. checked ?? true;
+            const showImage = document.getElementById('fImage') ?. checked ?? true;
+            const showAdded = document.getElementById('fAdded') ?. checked ?? true;
+            const showDel = document.getElementById('fDeleted') ?. checked ?? true;
+            const showMod = document.getElementById('fModified') ?. checked ?? true;
 
             const typeOk = (ch.type === 'text' && showText) || (ch.type === 'table' && showTable) || (ch.type === 'image' && showImage);
             const changeOk = (ch.change === 'added' && showAdded) || (ch.change === 'deleted' && showDel) || (ch.change === 'modified' && showMod);
@@ -934,13 +1025,19 @@ function updateSearchUI() {
     const prevBtn = document.getElementById('searchPrev');
     const nextBtn = document.getElementById('searchNext');
 
-    if (!counter) return;
+    if (! counter) 
+        return;
+    
 
     if (searchResults.length === 0 && searchQuery) {
         counter.textContent = 'No matches';
         counter.style.color = '#F44336';
     } else if (searchResults.length > 0) {
-        counter.textContent = `${currentSearchIndex + 1} of ${searchResults.length}`;
+        counter.textContent = `${
+            currentSearchIndex + 1
+        } of ${
+            searchResults.length
+        }`;
         counter.style.color = '#4CAF50';
     } else {
         counter.textContent = '';
@@ -950,7 +1047,9 @@ function updateSearchUI() {
 }
 
 function jumpToSearchResult(index) {
-    if (index < 0 || index >= searchResults.length) return;
+    if (index < 0 || index >= searchResults.length) 
+        return;
+    
 
     currentSearchIndex = index;
     const result = searchResults[index];
@@ -989,24 +1088,33 @@ function buildChangePanel() {
     visibleChanges.forEach((ch, i) => {
         const el = document.createElement('div');
         el.className = 'ci';
-        el.id = `ci-${ch.id}`;
+        el.id = `ci-${
+            ch.id
+        }`;
 
         let previewHtml = '';
         if (ch.type === 'text') {
-            if (ch.word_diff && ch.word_diff.length) {
-                // Enhanced character-level diff with color coding
+            if (ch.word_diff && ch.word_diff.length) { // Enhanced character-level diff with color coding
                 let tokens = '';
                 const wordsToShow = ch.word_diff.slice(0, 25); // Limit display
 
                 wordsToShow.forEach(w => {
                     if (w.status === 'deleted') {
-                        tokens += `<span style="background: #FFCDD2; color: #C62828; padding: 1px 3px; border-radius: 2px; text-decoration: line-through; font-size: 11px;">${esc(w.text)}</span> `;
+                        tokens += `<span style="background: #FFCDD2; color: #C62828; padding: 1px 3px; border-radius: 2px; text-decoration: line-through; font-size: 11px;">${
+                            esc(w.text)
+                        }</span> `;
                     } else if (w.status === 'added') {
-                        tokens += `<span style="background: #C8E6C9; color: #2E7D32; padding: 1px 3px; border-radius: 2px; font-weight: 500; font-size: 11px;">${esc(w.text)}</span> `;
+                        tokens += `<span style="background: #C8E6C9; color: #2E7D32; padding: 1px 3px; border-radius: 2px; font-weight: 500; font-size: 11px;">${
+                            esc(w.text)
+                        }</span> `;
                     } else if (w.status === 'modified') {
-                        tokens += `<span style="background: #FFF9C4; color: #F57F17; padding: 1px 3px; border-radius: 2px; font-weight: 500; font-size: 11px;">${esc(w.text)}</span> `;
+                        tokens += `<span style="background: #FFF9C4; color: #F57F17; padding: 1px 3px; border-radius: 2px; font-weight: 500; font-size: 11px;">${
+                            esc(w.text)
+                        }</span> `;
                     } else {
-                        tokens += `<span style="color: #666; font-size: 11px;">${esc(w.text)}</span> `;
+                        tokens += `<span style="color: #666; font-size: 11px;">${
+                            esc(w.text)
+                        }</span> `;
                     }
                 });
 
@@ -1017,20 +1125,34 @@ function buildChangePanel() {
                 previewHtml = `<div class="ci-text" style="line-height: 1.6; margin-top: 8px;">${tokens}</div>`;
             } else {
                 const txt = (ch.old_text || ch.new_text || '').slice(0, 80);
-                previewHtml = `<div class="ci-text">${esc(txt)}</div>`;
+                previewHtml = `<div class="ci-text">${
+                    esc(txt)
+                }</div>`;
             }
         } else if (ch.type === 'table') {
             const changed = (ch.cell_diffs || []).filter(c => c.change !== 'same').length;
-            previewHtml = `<div class="ci-text" style="font-size: 11px; color: #666; margin-top: 5px;">${changed} cell${changed !== 1 ? 's' : ''} changed in table</div>`;
+            previewHtml = `<div class="ci-text" style="font-size: 11px; color: #666; margin-top: 5px;">${changed} cell${
+                changed !== 1 ? 's' : ''
+            } changed in table</div>`;
         } else if (ch.type === 'image') {
-            previewHtml = `<div class="ci-text" style="font-size: 11px; color: #666; margin-top: 5px;">${ch.description || 'Image changed'}</div>`;
+            previewHtml = `<div class="ci-text" style="font-size: 11px; color: #666; margin-top: 5px;">${
+                ch.description || 'Image changed'
+            }</div>`;
         }
 
         el.innerHTML = `
             <div class="ci-header">
-                <span class="ci-badge ${ch.change}">${ch.change}</span>
-                <span class="ci-type">${ch.type}</span>
-                <span class="ci-page">Page ${ch._page}</span>
+                <span class="ci-badge ${
+            ch.change
+        }">${
+            ch.change
+        }</span>
+                <span class="ci-type">${
+            ch.type
+        }</span>
+                <span class="ci-page">Page ${
+            ch._page
+        }</span>
             </div>
             ${previewHtml}
         `;
@@ -1043,37 +1165,49 @@ function buildChangePanel() {
 // ── Navigation ────────────────────────────────────────────
 function updateNav() {
     const n = visibleChanges.length;
-    document.getElementById('navLabel').textContent = n === 0 ? 'No changes' : `${n} change${n !== 1 ? 's' : ''}`;
-    document.getElementById('navPos').textContent = n > 0 && currentIdx >= 0 ? `${currentIdx + 1} / ${n}` : `— / ${n}`;
+    document.getElementById('navLabel').textContent = n === 0 ? 'No changes' : `${n} change${
+        n !== 1 ? 's' : ''
+    }`;
+    document.getElementById('navPos').textContent = n > 0 && currentIdx >= 0 ? `${
+        currentIdx + 1
+    } / ${n}` : `— / ${n}`;
     document.getElementById('prevBtn').disabled = currentIdx <= 0;
     document.getElementById('nextBtn').disabled = currentIdx >= n - 1;
 }
 
 function prevDiff() {
-    if (currentIdx > 0) selectByIndex(currentIdx - 1);
+    if (currentIdx > 0) 
+        selectByIndex(currentIdx - 1);
+    
 }
 function nextDiff() {
-    if (currentIdx < visibleChanges.length - 1) selectByIndex(currentIdx + 1);
+    if (currentIdx < visibleChanges.length - 1) 
+        selectByIndex(currentIdx + 1);
+    
 }
 
 function selectByIndex(i) {
     currentIdx = i;
     const ch = visibleChanges[i];
-    if (ch) selectChange(ch.id, false);
+    if (ch) 
+        selectChange(ch.id, false);
+    
 }
 
 function selectChange(id, updateIdx = true, showDetail = false) {
     const ch = visibleChanges.find(c => c.id === id) || allChanges.find(c => c.id === id);
-    if (!ch) return;
+    if (! ch) 
+        return;
+    
 
-    if (updateIdx) currentIdx = visibleChanges.indexOf(ch);
+    if (updateIdx) 
+        currentIdx = visibleChanges.indexOf(ch);
+    
 
     // Update highlights
     document.querySelectorAll('.hl').forEach(el => {
         el.classList.remove('active');
-        const bgColor = el.classList.contains('added') ? 'rgba(76, 175, 80, 0.3)' :
-            el.classList.contains('deleted') ? 'rgba(244, 67, 54, 0.3)' :
-                'rgba(255, 235, 59, 0.3)';
+        const bgColor = el.classList.contains('added') ? 'rgba(76, 175, 80, 0.3)' : el.classList.contains('deleted') ? 'rgba(244, 67, 54, 0.3)' : 'rgba(255, 235, 59, 0.3)';
         el.style.background = bgColor;
         el.style.transform = 'scale(1)';
         el.style.zIndex = '10';
@@ -1083,9 +1217,7 @@ function selectChange(id, updateIdx = true, showDetail = false) {
 
     document.querySelectorAll(`[data-id="${id}"]`).forEach(el => {
         el.classList.add('active');
-        const bgColor = el.classList.contains('added') ? 'rgba(76, 175, 80, 0.6)' :
-            el.classList.contains('deleted') ? 'rgba(244, 67, 54, 0.6)' :
-                'rgba(255, 235, 59, 0.6)';
+        const bgColor = el.classList.contains('added') ? 'rgba(76, 175, 80, 0.6)' : el.classList.contains('deleted') ? 'rgba(244, 67, 54, 0.6)' : 'rgba(255, 235, 59, 0.6)';
         el.style.background = bgColor;
         el.style.transform = 'scale(1.05)';
         el.style.zIndex = '30';
@@ -1098,7 +1230,7 @@ function selectChange(id, updateIdx = true, showDetail = false) {
     const ci = document.getElementById(`ci-${id}`);
     if (ci) {
         ci.classList.add('active');
-        ci.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        ci.scrollIntoView({block: 'nearest', behavior: 'smooth'});
     }
 
     // Only show detailed diff panel if explicitly requested (direct click)
@@ -1120,22 +1252,33 @@ function copyChangeText(change, type) {
         const before = change.old_text || '(none)';
         const after = change.new_text || '(none)';
         text = `Before: ${before}\n\nAfter: ${after}`;
-    } else if (type === 'diff') {
-        // Copy as formatted diff
+    } else if (type === 'diff') { // Copy as formatted diff
         if (change.word_diff) {
             change.word_diff.forEach(word => {
                 if (word.status === 'added') {
-                    text += `+${word.text} `;
+                    text += `+${
+                        word.text
+                    } `;
                 } else if (word.status === 'deleted') {
-                    text += `-${word.text} `;
+                    text += `-${
+                        word.text
+                    } `;
                 } else if (word.status === 'modified') {
-                    text += `~${word.text} `;
+                    text += `~${
+                        word.text
+                    } `;
                 } else {
-                    text += `${word.text} `;
+                    text += `${
+                        word.text
+                    } `;
                 }
             });
         } else {
-            text = type === 'both' ? `Before: ${change.old_text}\nAfter: ${change.new_text}` : (change.old_text || change.new_text);
+            text = type === 'both' ? `Before: ${
+                change.old_text
+            }\nAfter: ${
+                change.new_text
+            }` : (change.old_text || change.new_text);
         }
     }
 
@@ -1149,7 +1292,7 @@ function copyChangeText(change, type) {
 
 function showDetailedDiff(ch) {
     let panel = document.getElementById('detailDiffPanel');
-    if (!panel) {
+    if (! panel) {
         panel = document.createElement('div');
         panel.id = 'detailDiffPanel';
         panel.style.cssText = `
@@ -1183,8 +1326,7 @@ function showDetailedDiff(ch) {
 
     let contentHtml = '';
 
-    if (ch.type === 'text' && ch.word_diff && ch.word_diff.length > 0) {
-        // Character-level diff display
+    if (ch.type === 'text' && ch.word_diff && ch.word_diff.length > 0) { // Character-level diff display
         contentHtml = '<div style="padding: 15px; overflow-y: auto; max-height: 400px;">';
         contentHtml += '<div style="font-weight: 600; margin-bottom: 10px; color: #333;">Character-level Changes:</div>';
 
@@ -1192,13 +1334,21 @@ function showDetailedDiff(ch) {
         contentHtml += '<div style="line-height: 1.8; font-family: monospace; font-size: 13px;">';
         ch.word_diff.forEach(word => {
             if (word.status === 'same') {
-                contentHtml += `<span style="color: #666;">${esc(word.text)} </span>`;
+                contentHtml += `<span style="color: #666;">${
+                    esc(word.text)
+                } </span>`;
             } else if (word.status === 'added') {
-                contentHtml += `<span style="background: #C8E6C9; color: #2E7D32; padding: 2px 4px; border-radius: 3px; font-weight: 600;">${esc(word.text)}</span> `;
+                contentHtml += `<span style="background: #C8E6C9; color: #2E7D32; padding: 2px 4px; border-radius: 3px; font-weight: 600;">${
+                    esc(word.text)
+                }</span> `;
             } else if (word.status === 'deleted') {
-                contentHtml += `<span style="background: #FFCDD2; color: #C62828; padding: 2px 4px; border-radius: 3px; text-decoration: line-through; font-weight: 600;">${esc(word.text)}</span> `;
+                contentHtml += `<span style="background: #FFCDD2; color: #C62828; padding: 2px 4px; border-radius: 3px; text-decoration: line-through; font-weight: 600;">${
+                    esc(word.text)
+                }</span> `;
             } else if (word.status === 'modified') {
-                contentHtml += `<span style="background: #FFF9C4; color: #F57F17; padding: 2px 4px; border-radius: 3px; font-weight: 600;">${esc(word.text)}</span> `;
+                contentHtml += `<span style="background: #FFF9C4; color: #F57F17; padding: 2px 4px; border-radius: 3px; font-weight: 600;">${
+                    esc(word.text)
+                }</span> `;
             }
         });
         contentHtml += '</div>';
@@ -1210,14 +1360,18 @@ function showDetailedDiff(ch) {
             if (ch.old_text && ch.change !== 'added') {
                 contentHtml += '<div style="margin-bottom: 10px;">';
                 contentHtml += '<div style="font-size: 11px; color: #999; margin-bottom: 5px;">ORIGINAL:</div>';
-                contentHtml += `<div style="padding: 8px; background: #FFEBEE; border-left: 3px solid #F44336; border-radius: 4px; font-size: 12px;">${esc(ch.old_text)}</div>`;
+                contentHtml += `<div style="padding: 8px; background: #FFEBEE; border-left: 3px solid #F44336; border-radius: 4px; font-size: 12px;">${
+                    esc(ch.old_text)
+                }</div>`;
                 contentHtml += '</div>';
             }
 
             if (ch.new_text && ch.change !== 'deleted') {
                 contentHtml += '<div>';
                 contentHtml += '<div style="font-size: 11px; color: #999; margin-bottom: 5px;">MODIFIED:</div>';
-                contentHtml += `<div style="padding: 8px; background: #E8F5E9; border-left: 3px solid #4CAF50; border-radius: 4px; font-size: 12px;">${esc(ch.new_text)}</div>`;
+                contentHtml += `<div style="padding: 8px; background: #E8F5E9; border-left: 3px solid #4CAF50; border-radius: 4px; font-size: 12px;">${
+                    esc(ch.new_text)
+                }</div>`;
                 contentHtml += '</div>';
             }
 
@@ -1234,28 +1388,44 @@ function showDetailedDiff(ch) {
                 if (cell.change !== 'same') {
                     const changeLabel = cell.change === 'added' ? '➕' : cell.change === 'deleted' ? '➖' : '✏️';
                     contentHtml += `<div style="margin-bottom: 8px; padding: 8px; background: #f5f5f5; border-radius: 4px;">`;
-                    contentHtml += `<div style="color: #666; font-size: 11px;">Row ${cell.row + 1}, Col ${cell.col + 1} ${changeLabel}</div>`;
-                    if (cell.old) contentHtml += `<div style="color: #C62828; text-decoration: line-through;">${esc(cell.old)}</div>`;
-                    if (cell.new) contentHtml += `<div style="color: #2E7D32; font-weight: 600;">${esc(cell.new)}</div>`;
+                    contentHtml += `<div style="color: #666; font-size: 11px;">Row ${
+                        cell.row + 1
+                    }, Col ${
+                        cell.col + 1
+                    } ${changeLabel}</div>`;
+                    if (cell.old) 
+                        contentHtml += `<div style="color: #C62828; text-decoration: line-through;">${
+                            esc(cell.old)
+                        }</div>`;
+                    
+                    if (cell.new) 
+                        contentHtml += `<div style="color: #2E7D32; font-weight: 600;">${
+                            esc(cell.new)
+                        }</div>`;
+                    
                     contentHtml += `</div>`;
                 }
             });
             if (ch.cell_diffs.length > 10) {
-                contentHtml += `<div style="color: #999; font-size: 12px; margin-top: 10px;">... and ${ch.cell_diffs.length - 10} more cells</div>`;
+                contentHtml += `<div style="color: #999; font-size: 12px; margin-top: 10px;">... and ${
+                    ch.cell_diffs.length - 10
+                } more cells</div>`;
             }
             contentHtml += '</div>';
         }
         contentHtml += '</div>';
     } else {
-        contentHtml = `<div style="padding: 15px;"><div style="color: #666;">${ch.description || 'Visual change detected'}</div></div>`;
-    }
-
-    panel.innerHTML = `
+        contentHtml = `<div style="padding: 15px;"><div style="color: #666;">${
+            ch.description || 'Visual change detected'
+        }</div></div>`;
+    } panel.innerHTML = `
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div>
                     <div style="font-weight: 600; font-size: 16px;">${changeTypeLabel} ${typeLabel}</div>
-                    <div style="font-size: 12px; opacity: 0.9;">Page ${ch._page}</div>
+                    <div style="font-size: 12px; opacity: 0.9;">Page ${
+        ch._page
+    }</div>
                 </div>
                 <button id="closePanelBtn" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; font-weight: bold;">×</button>
             </div>
@@ -1298,13 +1468,13 @@ function showDetailedDiff(ch) {
 function scrollToPage(pageNum, bbox) {
     const vsLeft = document.getElementById('vsLeft');
     const vsRight = document.getElementById('vsRight');
-    if (!vsLeft || !vsRight) {
+    if (! vsLeft || ! vsRight) {
         console.error('Viewer containers not found');
         return;
     }
 
     const pw = document.getElementById(`pw-left-${pageNum}`);
-    if (!pw) {
+    if (! pw) {
         console.error(`Page wrap not found for page ${pageNum}`);
         return;
     }
@@ -1312,23 +1482,23 @@ function scrollToPage(pageNum, bbox) {
     // Calculate exact scroll position
     // Get the absolute position of the page within the scroll container
     const pageTop = pw.offsetTop;
-    
+
     // Account for any toolbar/header height (adjust if needed)
     const headerOffset = 100; // Adjust based on your header height
-    
+
     let targetScrollPos = pageTop - headerOffset;
-    
+
     // If we have a bbox (for highlighting specific area), center it
     if (bbox && diffData && diffData.pages && diffData.pages[pageNum - 1]) {
         const pageData = diffData.pages[pageNum - 1];
         const scale = pw.offsetWidth / pageData.width;
         const bboxTopInPx = bbox.y * scale;
         const viewportHeight = vsLeft.clientHeight;
-        
+
         // Center the bbox in viewport
         targetScrollPos = pageTop + bboxTopInPx - (viewportHeight / 2);
     }
-    
+
     // Ensure we don't scroll past the content
     const maxScroll = vsLeft.scrollHeight - vsLeft.clientHeight;
     targetScrollPos = Math.max(0, Math.min(targetScrollPos, maxScroll));
@@ -1337,28 +1507,22 @@ function scrollToPage(pageNum, bbox) {
 
     // Disable sync temporarily to prevent flickering
     syncingScroll = true;
-    
+
     // Use smooth scroll for natural feel
-    vsLeft.scrollTo({
-        top: targetScrollPos,
-        behavior: 'smooth'
-    });
-    
-    vsRight.scrollTo({
-        top: targetScrollPos,
-        behavior: 'smooth'
-    });
-    
+    vsLeft.scrollTo({top: targetScrollPos, behavior: 'smooth'});
+
+    vsRight.scrollTo({top: targetScrollPos, behavior: 'smooth'});
+
     // Re-enable sync after scroll completes
-    setTimeout(() => { 
-        syncingScroll = false; 
+    setTimeout(() => {
+        syncingScroll = false;
         console.log(`[Scroll] Completed scroll to page ${pageNum}`);
     }, 600); // Longer timeout for smooth scroll
 }
 
 // Jump to specific page (for manual navigation)
 function jumpToPage(pageNum) {
-    if (!diffData || !diffData.pages) {
+    if (! diffData || ! diffData.pages) {
         console.error('No diff data available');
         showToast('Please complete a comparison first');
         return;
@@ -1371,18 +1535,20 @@ function jumpToPage(pageNum) {
     }
 
     console.log(`[Navigation] Jumping directly to page ${pageNum}`);
-    
+
     // Scroll to the page with smooth animation
     scrollToPage(pageNum, null);
 
     // Update page selector visual state
     updatePageSelectorState(pageNum);
-    
+
     // Show brief feedback to user
     const pg = diffData.pages.find(p => p.page_num === pageNum);
     if (pg && pg.has_changes) {
         const changeCount = pg.changes.length;
-        showToast(`📄 Page ${pageNum} (${changeCount} change${changeCount !== 1 ? 's' : ''})`);
+        showToast(`📄 Page ${pageNum} (${changeCount} change${
+            changeCount !== 1 ? 's' : ''
+        })`);
     } else {
         showToast(`📄 Page ${pageNum}`);
     }
@@ -1390,17 +1556,19 @@ function jumpToPage(pageNum) {
 
 function updatePageSelectorState(pageNum) {
     const selector = document.getElementById('pageSelector');
-    if (!selector || !diffData) return;
+    if (! selector || ! diffData) 
+        return;
+    
 
     currentVisiblePage = pageNum;
-    
+
     // Update all buttons
     selector.querySelectorAll('.page-selector-btn').forEach(btn => {
         const btnPageNum = parseInt(btn.dataset.page);
         if (btnPageNum === pageNum) {
             btn.style.background = '#2ecc71';
             btn.style.transform = 'scale(1.1)';
-            
+
             // Auto-scroll to show active page in center
             const scrollContainer = document.getElementById('pageSelectorScroll');
             if (scrollContainer) {
@@ -1408,11 +1576,8 @@ function updatePageSelectorState(pageNum) {
                 const btnWidth = btn.offsetWidth;
                 const containerWidth = scrollContainer.offsetWidth;
                 const scrollLeft = btnLeft - (containerWidth / 2) + (btnWidth / 2);
-                
-                scrollContainer.scrollTo({
-                    left: scrollLeft,
-                    behavior: 'smooth'
-                });
+
+                scrollContainer.scrollTo({left: scrollLeft, behavior: 'smooth'});
             }
         } else {
             const pg = diffData.pages.find(p => p.page_num === btnPageNum);
@@ -1423,23 +1588,24 @@ function updatePageSelectorState(pageNum) {
 }
 
 // Keyboard navigation
-document.addEventListener('keydown', (e) => {
-    // Don't intercept if typing in input/textarea
+document.addEventListener('keydown', (e) => { // Don't intercept if typing in input/textarea
     const activeEl = document.activeElement;
     const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
 
     // Help panel shortcut (always works)
-    if (e.key === '?' && !isTyping) {
+    if (e.key === '?' && ! isTyping) {
         e.preventDefault();
         showKeyboardHelp();
         return;
     }
 
     // Search focus shortcut (always works)
-    if (e.key === '/' && !isTyping) {
+    if (e.key === '/' && ! isTyping) {
         e.preventDefault();
         const searchInput = document.getElementById('searchInput');
-        if (searchInput) searchInput.focus();
+        if (searchInput) 
+            searchInput.focus();
+        
         return;
     }
 
@@ -1460,7 +1626,9 @@ document.addEventListener('keydown', (e) => {
     }
 
     // Don't intercept other shortcuts if typing
-    if (isTyping) return;
+    if (isTyping) 
+        return;
+    
 
     // Change navigation shortcuts
     if (e.key === 'n' || e.key === 'N' || (e.key === 'ArrowRight' && !e.ctrlKey)) {
@@ -1529,10 +1697,14 @@ document.addEventListener('keydown', (e) => {
     }
 
     // Page navigation shortcuts
-    if (!diffData || !diffData.pages) return;
+    if (! diffData || ! diffData.pages) 
+        return;
+    
 
     const vsLeft = document.getElementById('vsLeft');
-    if (!vsLeft) return;
+    if (! vsLeft) 
+        return;
+    
 
     const currentScroll = vsLeft.scrollTop;
     let currentPage = 1;
@@ -1553,7 +1725,7 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         jumpToPage(currentPage + 1);
     }
-    // Home/End for first/last page
+    // Home/End for first/last page 
     else if (e.key === 'Home' && e.ctrlKey) {
         e.preventDefault();
         jumpToPage(1);
@@ -1564,8 +1736,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── Zoom ──────────────────────────────────────────────────
-function zoomIn() { setZoom(Math.min(zoom + 0.25, 3)); }
-function zoomOut() { setZoom(Math.max(zoom - 0.25, 0.5)); }
+function zoomIn() {
+    setZoom(Math.min(zoom + 0.25, 3));
+}
+function zoomOut() {
+    setZoom(Math.max(zoom - 0.25, 0.5));
+}
 
 function setZoom(z) {
     zoom = z;
@@ -1580,7 +1756,7 @@ function setZoom(z) {
 // ── Keyboard Shortcuts Help ──────────────────────────────
 function showKeyboardHelp() {
     let helpPanel = document.getElementById('keyboardHelpPanel');
-    if (!helpPanel) {
+    if (! helpPanel) {
         helpPanel = document.createElement('div');
         helpPanel.id = 'keyboardHelpPanel';
         helpPanel.style.cssText = `
@@ -1677,7 +1853,7 @@ function showKeyboardHelp() {
 
 // ── Export Functionality ─────────────────────────────────
 function exportAsHTML() {
-    if (!diffData) {
+    if (! diffData) {
         showToast('No comparison data to export');
         return;
     }
@@ -1717,67 +1893,123 @@ function exportAsHTML() {
 <body>
     <div class="header">
         <h1>📄 PDF Comparison Report</h1>
-        <p>Generated on ${new Date().toLocaleString()}</p>
-        <p><strong>Original:</strong> ${diffData.file1_name} | <strong>Modified:</strong> ${diffData.file2_name}</p>
+        <p>Generated on ${
+        new Date().toLocaleString()
+    }</p>
+        <p><strong>Original:</strong> ${
+        diffData.file1_name
+    } | <strong>Modified:</strong> ${
+        diffData.file2_name
+    }</p>
     </div>
     
     <div class="summary">
         <div class="summary-card">
             <h3>Total Pages</h3>
-            <div class="value">${diffData.summary.total_pages}</div>
+            <div class="value">${
+        diffData.summary.total_pages
+    }</div>
         </div>
         <div class="summary-card">
             <h3>Pages Changed</h3>
-            <div class="value">${diffData.summary.pages_changed}</div>
+            <div class="value">${
+        diffData.summary.pages_changed
+    }</div>
         </div>
         <div class="summary-card">
             <h3>Text Changes</h3>
-            <div class="value">${diffData.summary.text_changes}</div>
+            <div class="value">${
+        diffData.summary.text_changes
+    }</div>
         </div>
         <div class="summary-card">
             <h3>Table Changes</h3>
-            <div class="value">${diffData.summary.table_changes}</div>
+            <div class="value">${
+        diffData.summary.table_changes
+    }</div>
         </div>
         <div class="summary-card">
             <h3>Image Changes</h3>
-            <div class="value">${diffData.summary.image_changes}</div>
+            <div class="value">${
+        diffData.summary.image_changes
+    }</div>
         </div>
     </div>
     
     <div class="changes">
         <h2>Changes Detail</h2>
-        ${allChanges.map((ch, idx) => `
+        ${
+        allChanges.map(
+            (ch, idx) => `
             <div class="change-item">
                 <div class="change-header">
                     <div>
-                        <span class="change-type ${ch.change}">${ch.change.toUpperCase()}</span>
-                        <strong>Page ${ch._page}</strong> - ${ch.type}
+                        <span class="change-type ${
+                ch.change
+            }">${
+                ch.change.toUpperCase()
+            }</span>
+                        <strong>Page ${
+                ch._page
+            }</strong> - ${
+                ch.type
+            }
                     </div>
-                    <div style="color: #999; font-size: 12px;">Change #${idx + 1}</div>
+                    <div style="color: #999; font-size: 12px;">Change #${
+                idx + 1
+            }</div>
                 </div>
-                ${ch.word_diff ? `
+                ${
+                ch.word_diff ? `
                     <div class="word-diff">
-                        ${ch.word_diff.map(w => {
-        if (w.status === 'added') return `<span class="word-added">${esc(w.text)}</span>`;
-        if (w.status === 'deleted') return `<span class="word-deleted">${esc(w.text)}</span>`;
-        if (w.status === 'modified') return `<span class="word-modified">${esc(w.text)}</span>`;
-        return esc(w.text);
-    }).join(' ')}
+                        ${
+                    ch.word_diff.map(w => {
+                        if (w.status === 'added') 
+                            return `<span class="word-added">${
+                                esc(w.text)
+                            }</span>`;
+                        
+                        if (w.status === 'deleted') 
+                            return `<span class="word-deleted">${
+                                esc(w.text)
+                            }</span>`;
+                        
+                        if (w.status === 'modified') 
+                            return `<span class="word-modified">${
+                                esc(w.text)
+                            }</span>`;
+                        
+                        return esc(w.text);
+                    }).join(' ')
+                }
                     </div>
-                ` : ''}
-                ${ch.old_text && ch.change !== 'added' ? `
-                    <div class="old-text"><strong>Original:</strong><br>${esc(ch.old_text)}</div>
-                ` : ''}
-                ${ch.new_text && ch.change !== 'deleted' ? `
-                    <div class="new-text"><strong>Modified:</strong><br>${esc(ch.new_text)}</div>
-                ` : ''}
+                ` : ''
+            }
+                ${
+                ch.old_text && ch.change !== 'added' ? `
+                    <div class="old-text"><strong>Original:</strong><br>${
+                    esc(ch.old_text)
+                }</div>
+                ` : ''
+            }
+                ${
+                ch.new_text && ch.change !== 'deleted' ? `
+                    <div class="new-text"><strong>Modified:</strong><br>${
+                    esc(ch.new_text)
+                }</div>
+                ` : ''
+            }
             </div>
-        `).join('')}
+        `
+        ).join('')
+    }
     </div>
     
     <div class="footer">
         <p>Generated by PDF Comparison Tool</p>
-        <p>Total Changes: ${allChanges.length}</p>
+        <p>Total Changes: ${
+        allChanges.length
+    }</p>
     </div>
 </body>
 </html>
@@ -1788,7 +2020,7 @@ function exportAsHTML() {
 }
 
 function exportAsCSV() {
-    if (!diffData) {
+    if (! diffData) {
         showToast('No comparison data to export');
         return;
     }
@@ -1798,7 +2030,15 @@ function exportAsCSV() {
     allChanges.forEach((ch, idx) => {
         const oldText = (ch.old_text || '').replace(/"/g, '""').replace(/\n/g, ' ');
         const newText = (ch.new_text || '').replace(/"/g, '""').replace(/\n/g, ' ');
-        csv += `${idx + 1},${ch._page},${ch.type},${ch.change},"${oldText}","${newText}"\n`;
+        csv += `${
+            idx + 1
+        },${
+            ch._page
+        },${
+            ch.type
+        },${
+            ch.change
+        },"${oldText}","${newText}"\n`;
     });
 
     downloadFile(csv, 'comparison-report.csv', 'text/csv');
@@ -1806,7 +2046,7 @@ function exportAsCSV() {
 }
 
 function exportAsJSON() {
-    if (!diffData) {
+    if (! diffData) {
         showToast('No comparison data to export');
         return;
     }
@@ -1818,17 +2058,19 @@ function exportAsJSON() {
             modified: diffData.file2_name
         },
         summary: diffData.summary,
-        changes: allChanges.map((ch, idx) => ({
-            index: idx + 1,
-            page: ch._page,
-            type: ch.type,
-            change: ch.change,
-            old_text: ch.old_text,
-            new_text: ch.new_text,
-            word_diff: ch.word_diff,
-            old_bbox: ch.old_bbox,
-            new_bbox: ch.new_bbox
-        }))
+        changes: allChanges.map(
+            (ch, idx) => ({
+                index: idx + 1,
+                page: ch._page,
+                type: ch.type,
+                change: ch.change,
+                old_text: ch.old_text,
+                new_text: ch.new_text,
+                word_diff: ch.word_diff,
+                old_bbox: ch.old_bbox,
+                new_bbox: ch.new_bbox
+            })
+        )
     };
 
     downloadFile(JSON.stringify(exportData, null, 2), 'comparison-report.json', 'application/json');
@@ -1836,7 +2078,7 @@ function exportAsJSON() {
 }
 
 function downloadFile(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
+    const blob = new Blob([content], {type: mimeType});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1851,7 +2093,7 @@ function downloadFile(content, filename, mimeType) {
 let highlightsVisible = true;
 
 function toggleHighlights() {
-    highlightsVisible = !highlightsVisible;
+    highlightsVisible = ! highlightsVisible;
 
     // Toggle character-level overlays
     document.querySelectorAll('.text-diff-overlay').forEach(overlay => {
@@ -1882,10 +2124,14 @@ let currentVisiblePage = 1;
 
 function updateCurrentPageIndicator() {
     const selector = document.getElementById('pageSelector');
-    if (!selector || !diffData) return;
+    if (! selector || ! diffData) 
+        return;
+    
 
     const vsLeft = document.getElementById('vsLeft');
-    if (!vsLeft) return;
+    if (! vsLeft) 
+        return;
+    
 
     const currentScroll = vsLeft.scrollTop;
     const viewportMiddle = currentScroll + (vsLeft.clientHeight / 2);
@@ -1898,7 +2144,7 @@ function updateCurrentPageIndicator() {
         if (pw) {
             const pageMiddle = pw.offsetTop + (pw.offsetHeight / 2);
             const distance = Math.abs(pageMiddle - viewportMiddle);
-            
+
             if (distance < closestDistance) {
                 closestDistance = distance;
                 newPage = i;
@@ -1915,27 +2161,41 @@ function updateCurrentPageIndicator() {
 function syncScrollSetup() {
     const L = document.getElementById('vsLeft');
     const R = document.getElementById('vsRight');
-    if (!L || !R) return;
+    if (! L || ! R) 
+        return;
+    
 
     L.addEventListener('scroll', () => {
-        if (syncingScroll) return;
-        if (scrollRAF) cancelAnimationFrame(scrollRAF);
+        if (syncingScroll) 
+            return;
+        
+        if (scrollRAF) 
+            cancelAnimationFrame(scrollRAF);
+        
         scrollRAF = requestAnimationFrame(() => {
             syncingScroll = true;
             R.scrollTop = L.scrollTop;
             updateCurrentPageIndicator();
-            setTimeout(() => { syncingScroll = false; }, 10);
+            setTimeout(() => {
+                syncingScroll = false;
+            }, 10);
         });
     });
 
     R.addEventListener('scroll', () => {
-        if (syncingScroll) return;
-        if (scrollRAF) cancelAnimationFrame(scrollRAF);
+        if (syncingScroll) 
+            return;
+        
+        if (scrollRAF) 
+            cancelAnimationFrame(scrollRAF);
+        
         scrollRAF = requestAnimationFrame(() => {
             syncingScroll = true;
             L.scrollTop = R.scrollTop;
             updateCurrentPageIndicator();
-            setTimeout(() => { syncingScroll = false; }, 10);
+            setTimeout(() => {
+                syncingScroll = false;
+            }, 10);
         });
     });
 }
@@ -1949,9 +2209,15 @@ function newComparison() {
     currentIdx = -1;
     file1 = null;
     file2 = null;
-    ['fi1', 'fi2'].forEach(id => { document.getElementById(id).value = ''; });
-    ['dz1-empty', 'dz2-empty'].forEach(id => { document.getElementById(id).style.display = ''; });
-    ['dz1-filled', 'dz2-filled'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    ['fi1', 'fi2'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    ['dz1-empty', 'dz2-empty'].forEach(id => {
+        document.getElementById(id).style.display = '';
+    });
+    ['dz1-filled', 'dz2-filled'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
     document.getElementById('compareBtn').disabled = true;
     document.getElementById('pagesLeft').innerHTML = '';
     document.getElementById('pagesRight').innerHTML = '';
@@ -1959,7 +2225,9 @@ function newComparison() {
 
     // Remove page selector if exists
     const selector = document.getElementById('pageSelector');
-    if (selector) selector.remove();
+    if (selector) 
+        selector.remove();
+    
 
     // Return to upload screen
     showScreen('screen-upload');
