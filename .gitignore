@@ -1,0 +1,6 @@
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+backend/uploads/
+backend/*.log

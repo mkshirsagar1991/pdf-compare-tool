@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DiffDoc — PDF Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══ UPLOAD ════════════════════════════════════════════════════════════════ -->
+<div id="screen-upload" class="screen active">
+  <header class="header">
+    <div class="logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect x="3" y="1" width="16" height="22" rx="2" fill="#fff" fill-opacity=".12" stroke="#fff" stroke-width="1.5"/>
+        <rect x="13" y="1" width="16" height="22" rx="2" fill="#fff" fill-opacity=".06" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 2"/>
+        <path d="M8 7h6M8 11h8M8 15h5" stroke="#60efbc" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M19 14l3 3-3 3" stroke="#60efbc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      DiffDoc
+    </div>
+    <p class="header-tag">Spot every change between two PDF documents</p>
+  </header>
+
+  <main class="upload-main">
+    <h1 class="hero-title">Compare PDFs<br><em>in seconds</em></h1>
+    <p class="hero-sub">Upload two versions of a document. We'll highlight every text, table, and image change — no technical knowledge needed.</p>
+
+    <div class="upload-row">
+      <!-- File 1 -->
+      <div class="upload-card" id="card1">
+        <div class="card-badge">Original</div>
+        <div class="drop-zone" id="dz1" onclick="document.getElementById('fi1').click()">
+          <input type="file" id="fi1" accept=".pdf" hidden>
+          <div class="dz-empty" id="dz1-empty">
+            <div class="dz-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L8 8m4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="17" width="18" height="4" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <p>Drop PDF here or <span class="dz-link">browse</span></p>
+            <p class="dz-hint">Max 50 MB</p>
+          </div>
+          <div class="dz-filled" id="dz1-filled" style="display:none">
+            <div class="file-icon">📄</div>
+            <div class="file-info">
+              <p class="file-name" id="fn1"></p>
+              <p class="file-size" id="fs1"></p>
+            </div>
+            <button class="file-remove" id="rm1" onclick="removeFile(1,event)">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-arrow">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>vs</span>
+      </div>
+
+      <!-- File 2 -->
+      <div class="upload-card" id="card2">
+        <div class="card-badge modified">Modified</div>
+        <div class="drop-zone" id="dz2" onclick="document.getElementById('fi2').click()">
+          <input type="file" id="fi2" accept=".pdf" hidden>
+          <div class="dz-empty" id="dz2-empty">
+            <div class="dz-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L8 8m4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="3" y="17" width="18" height="4" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <p>Drop PDF here or <span class="dz-link">browse</span></p>
+            <p class="dz-hint">Max 50 MB</p>
+          </div>
+          <div class="dz-filled" id="dz2-filled" style="display:none">
+            <div class="file-icon">📄</div>
+            <div class="file-info">
+              <p class="file-name" id="fn2"></p>
+              <p class="file-size" id="fs2"></p>
+            </div>
+            <button class="file-remove" id="rm2" onclick="removeFile(2,event)">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="compare-btn" id="compareBtn" disabled onclick="startCompare()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Compare Documents
+    </button>
+
+    <div class="legend">
+      <span class="legend-item added">● Added</span>
+      <span class="legend-item deleted">● Deleted</span>
+      <span class="legend-item modified">● Modified</span>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ LOADING ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-loading" class="screen">
+  <div class="loading-wrap">
+    <div class="spinner-ring"></div>
+    <h2>Comparing documents…</h2>
+    <p id="loading-step">Uploading files</p>
+    <div class="loading-steps">
+      <div class="lstep active" id="ls1">📤 Upload</div>
+      <div class="lstep" id="ls2">🔍 Extract text</div>
+      <div class="lstep" id="ls3">📊 Analyse tables</div>
+      <div class="lstep" id="ls4">🖼 Check images</div>
+      <div class="lstep" id="ls5">✅ Build report</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULTS ════════════════════════════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <!-- Floating Control Panel -->
+  <div id="floatingControls" style="position: fixed; top: 100px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 10px; min-width: 180px;">
+    
+    <!-- Export Section -->
+    <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+      <div style="font-size: 11px; color: #999; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Export Report</div>
+      <button onclick="exportAsHTML()" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 5px; transition: all 0.2s;" onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+        📄 HTML Report
+      </button>
+      <button onclick="exportAsCSV()" style="width: 100%; padding: 10px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 5px; transition: all 0.2s;" onmouseover="this.style.background='#0b7dda'" onmouseout="this.style.background='#2196F3'">
+        📊 CSV Data
+      </button>
+      <button onclick="exportAsJSON()" style="width: 100%; padding: 10px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#e68900'" onmouseout="this.style.background='#FF9800'">
+        💾 JSON Export
+      </button>
+    </div>
+    
+    <!-- Controls Section -->
+    <div>
+      <div style="font-size: 11px; color: #999; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">View Controls</div>
+      <button id="toggleHighlightsBtn" onclick="toggleHighlights()" style="width: 100%; padding: 10px; background: #9C27B0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 5px; transition: all 0.2s;" onmouseover="this.style.background='#7B1FA2'" onmouseout="this.style.background='#9C27B0'">
+        🔆 Hide Highlights
+      </button>
+      <button onclick="showKeyboardHelp()" style="width: 100%; padding: 10px; background: #607D8B; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#455A64'" onmouseout="this.style.background='#607D8B'" title="Press ? for help">
+        ⌨️ Shortcuts (?)
+      </button>
+    </div>
+  </div>
+
+  <!-- top bar -->
+  <div class="results-topbar">
+    <div class="topbar-left">
+      <div class="logo small">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none"><rect x="3" y="1" width="16" height="22" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="13" y="1" width="16" height="22" rx="2" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M8 7h6M8 11h8M8 15h5" stroke="#60efbc" stroke-width="1.5" stroke-linecap="round"/></svg>
+        DiffDoc
+      </div>
+      <div class="file-labels">
+        <span class="fl original" id="lbl1"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="fl modified" id="lbl2"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn" id="changesPanelToggle" onclick="toggleChangesPanel()" title="Toggle changes panel">📋 Changes</button>
+      <button class="tb-btn" id="floatingToggle" onclick="toggleFloatingControls()" title="Toggle export & controls">🔧 Tools</button>
+      <button class="tb-btn" id="filterBtn" onclick="toggleFilters()">⚙ Filter</button>
+      <button class="tb-btn" onclick="newComparison()">+ New</button>
+    </div>
+  </div>
+
+  <!-- summary bar -->
+  <div class="summary-bar" id="summaryBar"></div>
+
+  <!-- filter strip -->
+  <div class="filter-strip" id="filterStrip" style="display:none">
+    <span class="filter-label">Show:</span>
+    <label class="fchk"><input type="checkbox" id="fText" checked onchange="applyFilters()"> <span class="fchk-text">Text</span></label>
+    <label class="fchk"><input type="checkbox" id="fTable" checked onchange="applyFilters()"> <span class="fchk-table">Tables</span></label>
+    <label class="fchk"><input type="checkbox" id="fImage" checked onchange="applyFilters()"> <span class="fchk-img">Images</span></label>
+    <div class="filter-sep"></div>
+    <label class="fchk"><input type="checkbox" id="fAdded" checked onchange="applyFilters()"> <span class="fchk-added">Added</span></label>
+    <label class="fchk"><input type="checkbox" id="fDeleted" checked onchange="applyFilters()"> <span class="fchk-deleted">Deleted</span></label>
+    <label class="fchk"><input type="checkbox" id="fModified" checked onchange="applyFilters()"> <span class="fchk-modified">Modified</span></label>
+  </div>
+
+  <!-- nav bar -->
+  <div class="nav-bar">
+    <div class="nav-left">
+      <span id="navLabel">0 changes</span>
+    </div>
+    <div class="nav-center">
+      <button class="nav-btn" id="prevBtn" onclick="prevDiff()">← Prev</button>
+      <span id="navPos">—</span>
+      <button class="nav-btn" id="nextBtn" onclick="nextDiff()">Next →</button>
+    </div>
+    <div class="nav-right">
+      <button class="nav-btn" onclick="zoomOut()">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="nav-btn" onclick="zoomIn()">+</button>
+    </div>
+  </div>
+
+  <!-- viewer -->
+  <div class="viewer" id="viewer">
+    <div class="viewer-col">
+      <div class="viewer-head">Original</div>
+      <div class="viewer-scroll" id="vsLeft">
+        <div id="pagesLeft"></div>
+      </div>
+    </div>
+    <div class="viewer-divider"></div>
+    <div class="viewer-col">
+      <div class="viewer-head">Modified</div>
+      <div class="viewer-scroll" id="vsRight">
+        <div id="pagesRight"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- change panel -->
+  <div class="change-panel" id="changePanel" style="display: none;">
+    <div class="change-panel-head">All Changes</div>
+    
+    <!-- Search Box -->
+    <div id="searchContainer" style="padding: 12px; background: #1a1a1a; border-bottom: 1px solid #333;">
+      <div style="position: relative; margin-bottom: 8px;">
+        <input type="text" 
+               id="searchInput" 
+               placeholder="Search changes... (press / to focus)"
+               style="width: 100%; padding: 10px 40px 10px 15px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: white; font-size: 13px; outline: none;"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();nextSearchResult();}"
+               oninput="performSearch(this.value)">
+        <div id="searchResultsLabel" 
+             style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; font-size: 11px; pointer-events: none; font-family: 'DM Mono', monospace;">
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="prevSearchResult()" 
+                style="flex: 1; background: #333; color: white; border: none; padding: 7px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                onmouseover="this.style.background='#444'"
+                onmouseout="this.style.background='#333'">
+          ← Prev
+        </button>
+        <button onclick="nextSearchResult()" 
+                style="flex: 1; background: #333; color: white; border: none; padding: 7px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; transition: all 0.2s;"
+                onmouseover="this.style.background='#444'"
+                onmouseout="this.style.background='#333'">
+          Next →
+        </button>
+      </div>
+    </div>
+    
+    <div id="changeList"></div>
+  </div>
+
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js?v=1.4"></script>
+</body>
+</html>
